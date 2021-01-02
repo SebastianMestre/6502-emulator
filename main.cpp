@@ -3,9 +3,10 @@
 #include <cstdint>
 
 using Word = uint8_t;
+using DWord = uint16_t;
 
 struct CPU {
-	uint16_t PC; // Program Counter
+	DWord PC; // Program Counter
 	Word AC;     // Accumulator
 	Word X;      // X register
 	Word Y;      // Y register
@@ -129,12 +130,12 @@ struct Machine {
 	std::array<Word, memory_size> memory;
 	CPU cpu;
 
-	Word read_word(uint16_t address) {
+	Word read_word(DWord address) {
 		return memory[address];
 	}
 
-	uint16_t read_long(uint16_t address) {
-		return uint16_t(memory[address + 1]) << 8 | memory[address];
+	DWord read_dword(DWord address) {
+		return DWord(memory[address + 1]) << 8 | memory[address];
 	}
 
 	void normal_dispatch(Word opcode) {
@@ -158,7 +159,7 @@ struct Machine {
 		   parity of addressing mode is given by parity of hi nibble
 		 */
 
-		uint16_t address;
+		DWord address;
 		uint8_t width;
 
 		Word lo_op = opcode & 0x0f;
@@ -167,11 +168,11 @@ struct Machine {
 
 		switch (addressing_mode) {
 			case 0: // (indirect, x)
-				address = read_long(read_word(cpu.PC + 1) + cpu.X);
+				address = read_dword(read_word(cpu.PC + 1) + cpu.X);
 				width = 2;
 				break;
 			case 1: // (indirect), y
-				address = read_long(read_word(cpu.PC + 1)) + cpu.Y;
+				address = read_dword(read_word(cpu.PC + 1)) + cpu.Y;
 				width = 2;
 				break;
 			case 2: // zero page
@@ -187,15 +188,15 @@ struct Machine {
 				width = 2;
 				break;
 			case 5: // absolute, y
-				address = read_long(cpu.PC + 1) + cpu.Y;
+				address = read_dword(cpu.PC + 1) + cpu.Y;
 				width = 3;
 				break;
 			case 6: // absolute
-				address = read_long(cpu.PC + 1);
+				address = read_dword(cpu.PC + 1);
 				width = 3;
 				break;
 			case 7: // absolute, x
-				address = read_long(cpu.PC + 1) + cpu.X;
+				address = read_dword(cpu.PC + 1) + cpu.X;
 				width = 3;
 				break;
 		}
