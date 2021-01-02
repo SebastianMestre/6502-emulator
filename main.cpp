@@ -162,46 +162,46 @@ struct Machine {
 		uint8_t width;
 
 		Word lo_op = opcode & 0x0f;
-		Word hi_op = opcode >> 4;
-		Word addressing_mode = ((lo_op - 1) >> 1) | (hi_op & 1);
+		Word hi_op = (opcode & 0xf0) >> 4;
+		Word addressing_mode = ((lo_op - 1) >> 1) | (hi_op & 0x01);
 
 		switch (addressing_mode) {
-			case 0:
+			case 0: // (indirect, x)
 				address = read_long(read_word(cpu.PC + 1) + cpu.X);
 				width = 2;
 				break;
-			case 1:
+			case 1: // (indirect), y
 				address = read_long(read_word(cpu.PC + 1)) + cpu.Y;
 				width = 2;
 				break;
-			case 2:
+			case 2: // zero page
 				address = read_word(cpu.PC + 1);
 				width = 2;
 				break;
-			case 3:
-				address = read_word(cpu.PC + 1) + cpu.X;
+			case 3: // zero page+x
+				address = Word(read_word(cpu.PC + 1) + cpu.X);
 				width = 2;
 				break;
-			case 4:
+			case 4: // immediate
 				address = cpu.PC + 1;
 				width = 2;
 				break;
-			case 5:
+			case 5: // absolute, y
 				address = read_long(cpu.PC + 1) + cpu.Y;
 				width = 3;
 				break;
-			case 6:
+			case 6: // absolute
 				address = read_long(cpu.PC + 1);
 				width = 3;
 				break;
-			case 7:
+			case 7: // absolute, x
 				address = read_long(cpu.PC + 1) + cpu.X;
 				width = 3;
 				break;
 		}
 
 		// TODO: choose the right instruction
-		cpu.adc(read_word(address));
+		cpu.adc(memory[address]);
 		cpu.PC += width;
 	}
 
